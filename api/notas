@@ -1,0 +1,17 @@
+    bcrypt-nodejs: sirve para utilizar el algoritmo de encriptación Secret.
+
+    body-parse: sirve para convertir el contenido que nos llega en la petición, al obejto usable por JS.
+
+    connect-multiparty: sirve para hacear upload de ficheros, lo qeu va a hacer es quedarse en e punto medio entre petición y la acción
+del controlador y hacer una subida de un archivo.
+
+    express: es el frameword que nos va a generar la ruta http.
+
+    jwt-simple: sirve para gestionar los tokens y la autenticación.
+
+    moment: sirve para generar fechas.
+
+    mongoose: sirve para trabajar con mongoDB dentro de nodeJS.
+
+    nodemon: sirve para refrescar el servidor cada vez que hagamos un cambio en el backend.
+
