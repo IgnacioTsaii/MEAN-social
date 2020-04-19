@@ -106,13 +106,13 @@ function loginUser(req, res){
 }
 
 // Conseguir datos de un usuario
-function getUser(req, res){
+function getUser(req, res) {
     var userId = req.params.id;
 
-    User.findById(userId, (err,user) => {
-        if (err) return res.status(500).send({message: 'Error en la petición'});
+    User.findById(userId, (err, user) => {
+        if (!user) return res.status(404).send({message: "Error en la petición"});
 
-        if (!user) return res.status(404).send({message: 'El usuario no existe'});
+        if (err) return res.status(500).send({message: "El usuario no existe"});
 
         followThisUser(req.user.sub, userId).then((value) => {
             return res.status(200).send({
@@ -124,23 +124,27 @@ function getUser(req, res){
     });
 }
 
-async function followThisUser(identity_user_id, user_id){
-    var following = await Follow.findOne({"user":identity_user_id, "followed":user_id}).exec((err, follow) => {
-            if (err) return handleError(err);
-            return follow;
+async function followThisUser(identity_user_id, user_id) {
+    var following = await Follow.findOne({ user: identity_user_id, followed: user_id }).exec()
+        .then((following) => {
+            return following;
+        })
+        .catch((err) => {
+            return handleError(err);
         });
-
-    var followed = await Follow.findOne({"user":user_id, "followed":identity_user_id}).exec((err, follow) => {
-            if (err) return handleError(err);
-            return follow;
+    var followed = await Follow.findOne({ user: user_id, followed: identity_user_id }).exec()
+        .then((followed) => {
+            return followed;
+        })
+        .catch((err) => {
+            return handleError(err);
         });
 
     return {
         following: following,
         followed: followed
-    }
+    };
 }
-
 // Devolver un listado de usuarios paginado
 function getUsers(req, res){
     var identity_user_id = req.user.sub;
