@@ -146,27 +146,60 @@ async function followThisUser(identity_user_id, user_id) {
     };
 }
 // Devolver un listado de usuarios paginado
-function getUsers(req, res){
-    var identity_user_id = req.user.sub;
+function getUsers(req,res){
+    var user_id = req.user.sub;
 
     var page = 1;
-    if (req.params.page){
+    if(req.params.page){
         page = req.params.page;
     }
-
     var itemsPerPage = 5;
 
-    User.find().sort('_id').paginate(page, itemsPerPage, (err, users, total) => {
-        if (err) return res.status(500).send({message: 'Error en la petición'});
+    User.find().sort('_id').paginate(page,itemsPerPage,(err,users,total)=>{
+        if(err) return res.status(500).send({message:"Error en la peticion", err});
+        if(!users) return res.status(404).send({message:"No hay Usuarios"});
 
-        if (!users) return res.status(404).send({message: 'No hay usuarios disponibles'});
-
-        return res. status(200).send({
-            users,
-            total,
-            page: Math.ceil(total/itemsPerPage)
+        followUserIds(user_id).then((value)=>{
+            return res.status(200).send({message:"Resultados",
+                users,
+                users_following: value.following,
+                users_followed: value.followed,
+                total,
+                pages: Math.ceil(total/itemsPerPage)});
         });
     });
+}
+
+async function followUserIds(user_id){
+
+    var following = await Follow.find({'user':user_id}).select({'_id':0,'__v':0,'user':0}).exec()
+        .then((follows) => {
+            return follows;
+        })
+        .catch((err) => {
+            return handleError(err);
+        });
+    var followed = await Follow.find({followed:user_id}).select({'_id':0,'__v':0,'followed':0}).exec()
+        .then((follows) => {
+            return follows;
+        })
+        .catch((err) => {
+            return handleError(err);
+        });
+
+    var following_clean = [];
+
+    following.forEach((follow)=>{
+        following_clean.push(follow.followed);
+    });
+    var followed_clean = [];
+
+    followed.forEach((follow)=>{
+        followed_clean.push(follow.user);
+    });
+//console.log(following_clean);
+    return {following: following_clean,followed:followed_clean}
+
 }
 
 // Edición de datos de usuario
